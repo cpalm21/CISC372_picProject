@@ -2,7 +2,9 @@
 #include <stdint.h>
 #include <time.h>
 #include <string.h>
+#include <pthread.h>
 #include "image.h"
+
 
 #define STB_IMAGE_IMPLEMENTATION
 #include "stb_image.h"
@@ -51,20 +53,74 @@ uint8_t getPixelValue(Image* srcImage,int x,int y,int bit,Matrix algorithm){
     return result;
 }
 
+typedef struct {
+    Image* srcImage;
+    Image* destImage;
+    Matrix algorithm;
+    int rowEnd;
+    int rowStart;
+} ImageInfo;
+
+
+void* threadFunction(void* arg){
+
+    ImageInfo* info = (ImageInfo*)arg;
+    int pix, bit;
+
+    
+    for(int row = info->rowStart; row < info->rowEnd; row++)
+        for(pix=0; pix<info->srcImage->width; pix++){
+            for(bit = 0; bit < info->srcImage->bpp; bit++){
+                info->destImage->data[Index(pix,row,info->srcImage->width,bit,info->srcImage->bpp)] = getPixelValue(info->srcImage,pix,row,bit,info->algorithm);
+            }
+        }
+    free(info);
+    return NULL;
+
+}
+
 //convolute:  Applies a kernel matrix to an image
 //Parameters: srcImage: The image being convoluted
 //            destImage: A pointer to a  pre-allocated (including space for the pixel array) structure to receive the convoluted image.  It should be the same size as srcImage
 //            algorithm: The kernel matrix to use for the convolution
 //Returns: Nothing
+
+
+
+
 void convolute(Image* srcImage,Image* destImage,Matrix algorithm){
     int row,pix,bit,span;
     span=srcImage->bpp*srcImage->bpp;
-    for (row=0;row<srcImage->height;row++){
-        for (pix=0;pix<srcImage->width;pix++){
-            for (bit=0;bit<srcImage->bpp;bit++){
-                destImage->data[Index(pix,row,srcImage->width,bit,srcImage->bpp)]=getPixelValue(srcImage,pix,row,bit,algorithm);
-            }
+
+    
+    //create pthreads
+    int numThreads = 6;
+    pthread_t threads[numThreads];
+
+    int chunkPerThread = srcImage->height / 6;
+
+ 
+    int threadNum = 0;
+    for (int row=0;row<srcImage->height;row+=chunkPerThread){
+        ImageInfo* info = malloc(sizeof(ImageInfo));
+        info->srcImage = srcImage;
+        info->destImage = destImage;
+        memcpy(info->algorithm, algorithm, sizeof(Matrix));
+        
+        info->rowStart = row;
+        if(row + chunkPerThread < srcImage -> height){
+            info->rowEnd = row + chunkPerThread;
+        }else{
+            info->rowEnd = srcImage -> height;
         }
+
+
+        pthread_create(&threads[threadNum], NULL, threadFunction, (void*)info);
+        threadNum++;
+
+    }
+    for(row = 0; row < threadNum; row++){
+        pthread_join(threads[row], NULL);
     }
 }
 
