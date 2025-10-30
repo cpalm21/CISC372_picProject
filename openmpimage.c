@@ -120,7 +120,8 @@ enum KernelTypes GetKernelType(char* type){
 int main(int argc,char** argv){
     
     
-
+    long t1, t2;
+    t1 = time(NULL);
     
 
 
@@ -149,22 +150,19 @@ int main(int argc,char** argv){
 
     //convolute(&srcImage,&destImage,algorithms[type]);
     int thread_count = strtol(argv[3], NULL, 10);
-    struct timespec start, end;
-    clock_gettime(CLOCK_MONOTONIC, &start);
+   
     #pragma omp parallel num_threads(thread_count)
     
     convolute(&srcImage, &destImage, algorithms[type]);
-    clock_gettime(CLOCK_MONOTONIC, &end); 
+     
     
-    double elapsed = (end.tv_sec - start.tv_sec)
-               + (end.tv_nsec - start.tv_nsec) / 1e9;
-
+    
     stbi_write_png("output.png",destImage.width,destImage.height,destImage.bpp,destImage.data,destImage.bpp*destImage.width);
     stbi_image_free(srcImage.data);
    
     free(destImage.data);
-    
-    printf("Took %.3f seconds\n",elapsed);
+    t2 = time(NULL);
+    printf("Took %ld seconds\n", t2-t1);
    return 0;
 }
 

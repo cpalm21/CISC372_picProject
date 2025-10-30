@@ -1,0 +1,9 @@
+Script started on Thu Oct 30 19:17:07 2025
+]0;palmerc@r1n45.darwin:~/CISC372_picProject[?1034h[palmerc@r1n45 CISC372_picProject]$ srun ./threadImage pic1.jpg edge
+Took 6 seconds
+]0;palmerc@r1n45.darwin:~/CISC372_picProject[palmerc@r1n45 CISC372_picProject]$ srun ./openmpimage pic1.jpg edge 4
+Took 7 seconds
+]0;palmerc@r1n45.darwin:~/CISC372_picProject[palmerc@r1n45 CISC372_picProject]$ exit
+exit
+
+Script done on Thu Oct 30 19:18:22 2025

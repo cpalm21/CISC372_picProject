@@ -153,6 +153,8 @@ enum KernelTypes GetKernelType(char* type){
 int main(int argc,char** argv){
    
     
+    long t1, t2; 
+    t1 = time(NULL);
 
     stbi_set_flip_vertically_on_load(0); 
     if (argc!=3) return Usage();
@@ -174,19 +176,16 @@ int main(int argc,char** argv){
     destImage.data=malloc(sizeof(uint8_t)*destImage.width*destImage.bpp*destImage.height);
     
     
-    struct timespec start, end;
-    clock_gettime(CLOCK_MONOTONIC, &start); 
+     
     convolute(&srcImage,&destImage,algorithms[type]);
-    clock_gettime(CLOCK_MONOTONIC, &end);    
-
-    double elapsed = (end.tv_sec - start.tv_sec)
-               + (end.tv_nsec - start.tv_nsec) / 1e9;
+    
+    
 
     stbi_write_png("output.png",destImage.width,destImage.height,destImage.bpp,destImage.data,destImage.bpp*destImage.width);
     stbi_image_free(srcImage.data);
     
     free(destImage.data);
-    
-    printf("Took %.3f seconds\n",elapsed);
+    t2 = time(NULL);   
+    printf("Took %ld seconds\n",t2-t1);
    return 0;
 }
